@@ -1,0 +1,5 @@
+name,email,age,status
+Aarav Sharma,aarav@example.com,21,active
+R,wrong-email,200,unknown
+Priya Patel,priya@example.com,20,pending
+Aarav Duplicate,aarav@example.com,22,active

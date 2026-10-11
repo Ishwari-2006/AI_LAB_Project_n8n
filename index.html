@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dataset Quality Auditor</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">DQ</div>
+        <div>
+          <div class="brand-name">DataLens</div>
+          <div class="brand-caption">QUALITY AUDITOR</div>
+        </div>
+      </div>
+      <div class="side-label">WORKSPACE</div>
+      <a class="nav-item active" href="#audit"><span class="nav-icon">▦</span> Dataset audit</a>
+      <a class="nav-item" href="#rules"><span class="nav-icon">☷</span> Validation rules</a>
+      <a class="nav-item" href="#report"><span class="nav-icon">▤</span> Audit report</a>
+      <div class="sidebar-bottom">
+        <div class="connection-dot"></div>
+        <div><strong>Local n8n webhook</strong><small id="connectionText">Configured · localhost:5678</small></div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="breadcrumb">Workspace <span>/</span> Dataset audit</div>
+        <div class="topbar-right"><span class="status-pill"><i></i> Local environment</span><span class="avatar">DQ</span></div>
+      </header>
+
+      <section class="page-heading" id="audit">
+        <div>
+          <div class="eyebrow">DATA QUALITY WORKSPACE</div>
+          <h1>Dataset Quality Auditor</h1>
+          <p>Validate records, identify data issues, and review a clear audit report.</p>
+        </div>
+        <div class="run-label"><span class="pulse"></span> Powered by your n8n workflow</div>
+      </section>
+
+      <section class="stats-grid" aria-label="Latest audit summary">
+        <article class="stat-card">
+          <div class="stat-top"><span>Total records</span><span class="stat-icon neutral">▤</span></div>
+          <div class="stat-value" id="totalRows">—</div><div class="stat-note">Rows submitted for validation</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top"><span>Valid records</span><span class="stat-icon green">✓</span></div>
+          <div class="stat-value" id="validRows">—</div><div class="stat-note">Records that passed all checks</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top"><span>Invalid records</span><span class="stat-icon red">!</span></div>
+          <div class="stat-value" id="invalidRows">—</div><div class="stat-note">Records requiring attention</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top"><span>Issues found</span><span class="stat-icon amber">⌕</span></div>
+          <div class="stat-value" id="totalErrors">—</div><div class="stat-note">Individual validation errors</div>
+        </article>
+      </section>
+
+      <div class="content-grid">
+        <section class="panel upload-panel">
+          <div class="panel-heading">
+            <div><div class="section-kicker">STEP 01</div><h2>Upload your dataset</h2></div>
+            <span class="soft-tag">CSV file</span>
+          </div>
+          <p class="panel-description">Choose a CSV file. The first row should contain column names, for example: <code>name,email,age,status</code>.</p>
+          <label class="dropzone" id="dropzone" for="csvFile">
+            <div class="upload-icon">↑</div>
+            <strong id="fileTitle">Drop your CSV here</strong>
+            <span id="fileSubtitle">or <u>browse files</u> from your computer</span>
+            <small>CSV only · Processed locally in your browser before sending to n8n</small>
+          </label>
+          <input type="file" id="csvFile" accept=".csv,text/csv" hidden />
+          <div class="file-preview hidden" id="filePreview">
+            <div class="file-badge">CSV</div>
+            <div class="file-info"><strong id="fileName"></strong><small id="fileDetails"></small></div>
+            <button class="icon-button" id="removeFile" type="button" aria-label="Remove file">×</button>
+          </div>
+          <div class="preview-heading"><strong>Data preview</strong><span id="previewCount">No file selected</span></div>
+          <div class="table-wrap preview-wrap">
+            <table><thead id="previewHead"><tr><th>Upload a CSV to preview its columns</th></tr></thead><tbody id="previewBody"><tr><td class="empty-cell">Your first rows will appear here.</td></tr></tbody></table>
+          </div>
+          <div class="panel-footer">
+            <span class="muted"><span class="tiny-check">✓</span> Your original file is not modified</span>
+            <button class="primary-button" id="validateButton" type="button" disabled>Run data audit <span>→</span></button>
+          </div>
+        </section>
+
+        <section class="panel rules-panel" id="rules">
+          <div class="panel-heading">
+            <div><div class="section-kicker">STEP 02</div><h2>Validation settings</h2></div>
+            <span class="soft-tag">Custom rules</span>
+          </div>
+          <p class="panel-description">Set custom rules for selected columns. Rules entered here are sent to your n8n workflow.</p>
+          <div class="rule-row">
+            <div class="rule-title"><div><strong>Required fields</strong><small>Fields that must not be empty</small></div><label class="switch"><input type="checkbox" id="nameRequired" checked><span></span></label></div>
+            <label class="field-label" for="requiredFields">Required columns</label>
+            <input class="text-input" id="requiredFields" value="name,email" placeholder="name,email" />
+            <small class="field-hint">Separate column names with commas.</small>
+          </div>
+          <div class="rule-divider"></div>
+          <div class="rule-row">
+            <div class="rule-title"><div><strong>Minimum name length</strong><small>Reject names shorter than this value</small></div><span class="rule-symbol">Aa</span></div>
+            <div class="range-input"><input type="number" id="minNameLength" min="0" max="100" value="2"><span>characters minimum</span></div>
+          </div>
+          <div class="rule-divider"></div>
+          <div class="rule-row">
+            <div class="rule-title"><div><strong>Age range</strong><small>Numeric lower and upper bounds</small></div><span class="rule-symbol">#</span></div>
+            <div class="two-fields"><label><span class="field-label">Minimum age</span><input class="text-input" type="number" id="minAge" value="0"></label><label><span class="field-label">Maximum age</span><input class="text-input" type="number" id="maxAge" value="150"></label></div>
+          </div>
+          <div class="rule-divider"></div>
+          <div class="rule-row">
+            <div class="rule-title"><div><strong>Allowed status values</strong><small>Values outside this list are flagged</small></div><span class="rule-symbol">☷</span></div>
+            <input class="text-input" id="allowedStatuses" value="active,inactive,pending" placeholder="active,inactive,pending">
+            <small class="field-hint">Comma-separated; compared exactly, including case.</small>
+          </div>
+          <div class="rule-divider"></div>
+          <div class="rule-row compact-rule">
+            <div class="rule-title"><div><strong>Duplicate email detection</strong><small>Detect repeated email addresses</small></div><span class="enabled-tag">Enabled</span></div>
+            <p class="info-note">Your current n8n code checks duplicate emails automatically. This option is always active.</p>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel report-panel" id="report">
+        <div class="panel-heading report-heading">
+          <div><div class="section-kicker">STEP 03</div><h2>Audit report</h2><p class="panel-description">Detailed issues returned by the n8n validation workflow.</p></div>
+          <div class="report-actions"><button class="secondary-button" id="downloadButton" disabled>↓ Export issues CSV</button></div>
+        </div>
+        <div id="reportMessage" class="report-empty">
+          <div class="empty-illustration">▤</div><strong>Your audit report will appear here</strong><span>Upload a CSV and run an audit to view the results.</span>
+        </div>
+        <div id="reportResults" class="hidden">
+          <div class="report-summary-line"><span id="resultStatus" class="result-badge"></span><span id="resultMessage"></span><span class="result-spacer"></span><span id="resultRows" class="muted"></span></div>
+          <div class="table-wrap report-table-wrap">
+            <table><thead><tr><th>ROW</th><th>FIELD</th><th>VALUE</th><th>RULE</th><th>ISSUE</th></tr></thead><tbody id="errorsBody"></tbody></table>
+          </div>
+          <div class="success-message hidden" id="noErrorsMessage"><span>✓</span> No validation issues found. All submitted records passed the configured checks.</div>
+        </div>
+      </section>
+
+      <footer class="footer"><span>DataLens · Dataset Quality Auditor</span><span>Frontend · HTML, CSS & JavaScript <b>•</b> Validation · n8n</span></footer>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
